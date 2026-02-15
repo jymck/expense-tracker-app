@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./expenses.db:/app/expenses.db
+      - ./recovery_tokens.log:/app/recovery_tokens.log
+    environment:
+      # Uncomment and set these to enable email:
+      # SMTP_SERVER: smtp.gmail.com
+      # SMTP_USER: your-email@gmail.com
+      # SMTP_PASSWORD: your-app-password
+      # SMTP_PORT: "587"

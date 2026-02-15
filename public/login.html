@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker - Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 15px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      right: 12px;
+      top: 38px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #667eea;
+      font-size: 18px;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .success-message {
+      color: #27ae60;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-footer a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #f0f0f0;
+      color: #666;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .form-content {
+      display: none;
+    }
+
+    .form-content.active {
+      display: block;
+    }
+
+    .forgot-password-link {
+      text-align: right;
+      margin-top: -15px;
+      margin-bottom: 20px;
+    }
+
+    .forgot-password-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #f0f0f0;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Logo Section -->
+      <div class="logo-section">
+        <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1e90ff;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#00ff88;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ff1493;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="95" fill="none" stroke="url(#grad1)" stroke-width="3" opacity="0.4"/>
+          <circle cx="60" cy="60" r="6" fill="#1e90ff"/>
+          <circle cx="140" cy="60" r="6" fill="#00ff88"/>
+          <circle cx="100" cy="140" r="6" fill="#ff1493"/>
+          <circle cx="100" cy="100" r="10" fill="url(#grad1)"/>
+          <line x1="60" y1="60" x2="100" y2="100" stroke="#1e90ff" stroke-width="2" opacity="0.7"/>
+          <line x1="140" y1="60" x2="100" y2="100" stroke="#00ff88" stroke-width="2" opacity="0.7"/>
+          <line x1="100" y1="140" x2="100" y2="100" stroke="#ff1493" stroke-width="2" opacity="0.7"/>
+          <line x1="60" y1="60" x2="140" y2="60" stroke="#1e90ff" stroke-width="2" opacity="0.5"/>
+          <text x="35" y="120" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#1e90ff">Y</text>
+          <text x="90" y="120" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#00ff88">C</text>
+          <text x="145" y="120" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ff1493">R</text>
+        </svg>
+        <h1>Expense Tracker</h1>
+        <p class="subtitle">Manage your finances smartly</p>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login" class="form-content active">
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" placeholder="Enter your username" required>
+            <div class="error-message" id="loginError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password:</label>
+            <div class="password-toggle">
+              <input type="password" id="loginPassword" placeholder="Enter your password" required>
+              <button type="button" class="toggle-btn" onclick="togglePassword('loginPassword')">👁️</button>
+            </div>
+          </div>
+
+          <div class="forgot-password-link">
+            <a onclick="switchTab('forgot')">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Login</button>
+          <div class="success-message" id="loginSuccess"></div>
+        </form>
+
+        <div class="form-footer">
+          Don't have an account? <a onclick="switchTab('register')">Register here</a>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <div id="register" class="form-content">
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="regUsername">Username:</label>
+            <input type="text" id="regUsername" placeholder="Choose a username" required>
+            <div class="error-message" id="regUsernameError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="regEmail">Email:</label>
+            <input type="email" id="regEmail" placeholder="Enter your email" required>
+            <div class="error-message" id="regEmailError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="regPassword">Password:</label>
+            <div class="password-toggle">
+              <input type="password" id="regPassword" placeholder="Min 6 characters" required>
+              <button type="button" class="toggle-btn" onclick="togglePassword('regPassword')">👁️</button>
+            </div>
+            <div class="error-message" id="regPasswordError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="regPasswordConfirm">Confirm Password:</label>
+            <div class="password-toggle">
+              <input type="password" id="regPasswordConfirm" placeholder="Confirm password" required>
+              <button type="button" class="toggle-btn" onclick="togglePassword('regPasswordConfirm')">👁️</button>
+            </div>
+            <div class="error-message" id="regConfirmError"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Create Account</button>
+          <div class="success-message" id="regSuccess"></div>
+        </form>
+
+        <div class="form-footer">
+          Already have an account? <a onclick="switchTab('login')">Login here</a>
+        </div>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div id="forgot" class="form-content">
+        <h2 style="color: #333; margin-bottom: 20px; font-size: 20px;">Reset Password</h2>
+        <form onsubmit="handleForgotPassword(event)">
+          <div class="form-group">
+            <label for="forgotEmail">Enter your email:</label>
+            <input type="email" id="forgotEmail" placeholder="Email associated with account" required>
+            <div class="error-message" id="forgotError"></div>
+            <div class="success-message" id="forgotSuccess"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Send Recovery Link</button>
+        </form>
+
+        <div class="form-footer">
+          <a onclick="switchTab('login')">Back to Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      // Hide all forms
+      document.querySelectorAll('.form-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      // Clear error messages
+      document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.success-message').forEach(el => el.style.display = 'none');
+
+      // Show selected form
+      if (tab === 'forgot') {
+        document.getElementById('forgot').classList.add('active');
+      } else if (tab === 'register') {
+        document.getElementById('register').classList.add('active');
+        document.querySelector('[onclick="switchTab(\'register\')"]').classList.add('active');
+      } else {
+        document.getElementById('login').classList.add('active');
+        document.querySelector('[onclick="switchTab(\'login\')"]').classList.add('active');
+      }
+    }
+
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const btn = event.target;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    function showError(elementId, message) {
+      const errorEl = document.getElementById(elementId);
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+
+    function showSuccess(elementId, message) {
+      const successEl = document.getElementById(elementId);
+      successEl.textContent = message;
+      successEl.style.display = 'block';
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError('loginError', data.error || 'Login failed');
+          return;
+        }
+
+        // Save token to localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        showSuccess('loginSuccess', 'Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 1500);
+      } catch (error) {
+        showError('loginError', 'Connection error: ' + error.message);
+      }
+    }
+
+    async function handleRegister(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regPasswordConfirm').value;
+
+      // Clear previous errors
+      document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+      // Validation
+      if (password !== confirmPassword) {
+        showError('regConfirmError', 'Passwords do not match');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('regPasswordError', 'Password must be at least 6 characters');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError('regUsernameError', data.error || 'Registration failed');
+          return;
+        }
+
+        // Save token to localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        showSuccess('regSuccess', 'Account created! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 1500);
+      } catch (error) {
+        showError('regUsernameError', 'Connection error: ' + error.message);
+      }
+    }
+
+    async function handleForgotPassword(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('forgotEmail').value;
+
+      try {
+        const response = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError('forgotError', data.error || 'Failed to process request');
+          return;
+        }
+
+        showSuccess('forgotSuccess', 'Recovery link sent! Check your email.\nFor testing: ' + data.token);
+        document.getElementById('forgotEmail').value = '';
+      } catch (error) {
+        showError('forgotError', 'Connection error: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
