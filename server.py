@@ -5,6 +5,7 @@ from urllib.parse import urlparse, parse_qs
 import json
 import sqlite3
 import os
+import sys
 import hashlib
 import secrets
 import re
@@ -54,7 +55,7 @@ def send_recovery_email(email, token, username):
     try:
         # For development: Log token to console and file
         recovery_message = f"[{datetime.now().isoformat()}] Password recovery requested\n  Email: {email}\n  Username: {username}\n  Token: {token}\n  Recovery URL: http://localhost:3000/recovery.html?token={token}\n"
-        print(recovery_message)
+        print(recovery_message, file=sys.stderr)
         
         # Log to file for reference
         with open(RECOVERY_LOG_FILE, 'a') as f:
@@ -93,13 +94,13 @@ def send_recovery_email(email, token, username):
                 server.starttls()
                 server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_user, email, message.as_string())
-                print(f"Email sent to {email}")
+                print(f"Email sent to {email}", file=sys.stderr)
         else:
-            print(f"[DEVELOPMENT] Email service not configured. Check recovery_tokens.log for recovery tokens.")
+            print(f"[DEVELOPMENT] Email service not configured. Check recovery_tokens.log for recovery tokens.", file=sys.stderr)
         
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Error sending email: {e}", file=sys.stderr)
         # Still consider it success for development - token is logged
         return True
 
@@ -625,7 +626,7 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                         self.send_response(400)
                         self.send_header('Content-type', 'application/json')
                         self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'Username or email already exists'}).encode())
+                        self.wfile.write(json.dumps({'error': 'Username or email already exists'}).encode())
                 return
             
             # Forgot password endpoint
@@ -811,7 +812,7 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                                          (user['id'], expense['date'], expense['category'], expense['amount'], expense.get('description', '')))
                             restored_count += 1
                         except Exception as e:
-                            print(f"Error restoring expense: {e}")
+                            print(f"Error restoring expense: {e}", file=sys.stderr)
                             continue
                     
                     conn.commit()
@@ -848,11 +849,22 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                         self.wfile.write(json.dumps({'error': 'Missing required fields'}).encode())
                         return
                     
+                    # Convert amount to float and back to string to ensure precise storage
+                    try:
+                        amount_float = float(amount)
+                        amount_str = str(amount_float)
+                    except (ValueError, TypeError):
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Invalid amount'}).encode())
+                        return
+                    
                     with db_lock:
                         conn = get_db_connection()
                         cursor = conn.cursor()
                         cursor.execute('INSERT INTO expenses (user_id, date, category, amount, description) VALUES (?, ?, ?, ?, ?)',
-                                     (user['id'], date, category, amount, description))
+                                     (user['id'], date, category, amount_str, description))
                         conn.commit()
                         expense_id = cursor.lastrowid
                         conn.close()
@@ -866,6 +878,7 @@ class ExpenseHandler(BaseHTTPRequestHandler):
         
         except Exception as e:
             self.send_response(500)
+            self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
     
@@ -953,6 +966,17 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Missing required fields'}).encode())
                     return
                 
+                # Convert amount to float and back to string to ensure precise storage
+                try:
+                    amount_float = float(amount)
+                    amount_str = str(amount_float)
+                except (ValueError, TypeError):
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Invalid amount'}).encode())
+                    return
+                
                 with db_lock:
                     conn = get_db_connection()
                     cursor = conn.cursor()
@@ -970,7 +994,7 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                         return
                     
                     cursor.execute('UPDATE expenses SET date = ?, category = ?, amount = ?, description = ? WHERE id = ?',
-                                 (date, category, amount, description, expense_id))
+                                 (date, category, amount_str, description, expense_id))
                     conn.commit()
                     conn.close()
                 

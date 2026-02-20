@@ -7,6 +7,12 @@
     "start": "python server.py",
     "dev": "python server.py"
   },
-  "keywords": ["expenses", "tracker"],
-  "author": ""
+  "keywords": [
+    "expenses",
+    "tracker"
+  ],
+  "author": "",
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  }
 }
