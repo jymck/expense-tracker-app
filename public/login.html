@@ -12,7 +12,7 @@
     }
 
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 15%, #f093fb 30%, #4facfe 45%, #00f2fe 60%, #43e97b 75%, #38f9d7 90%, #4facfe 100%);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
@@ -23,14 +23,14 @@
 
     .auth-container {
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
     }
 
     .auth-card {
-      background: white;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 10%, rgba(241, 245, 249, 0.98) 20%, rgba(234, 240, 246, 0.98) 30%, rgba(227, 235, 243, 0.98) 40%, rgba(220, 230, 238, 0.98) 50%, rgba(213, 225, 233, 0.98) 60%, rgba(206, 220, 228, 0.98) 70%, rgba(199, 215, 221, 0.98) 80%, rgba(192, 210, 218, 0.98) 90%, rgba(185, 205, 213, 0.98) 100%);
       border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      padding: 50px;
       animation: slideUp 0.4s ease-out;
     }
 
@@ -57,14 +57,16 @@
     }
 
     h1 {
-      color: #333;
-      font-size: 28px;
+      color: #1a1a1a;
+      font-size: 32px;
       margin-bottom: 10px;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
     }
 
     .subtitle {
-      color: #666;
-      font-size: 14px;
+      color: #2d3748;
+      font-size: 16px;
+      text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7);
     }
 
     .form-group {
@@ -73,24 +75,27 @@
 
     label {
       display: block;
-      color: #333;
+      color: #1a1a1a;
       font-weight: 600;
       margin-bottom: 8px;
       font-size: 14px;
+      text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7);
     }
 
     input {
       width: 100%;
-      padding: 12px 15px;
-      border: 2px solid #e0e0e0;
+      padding: 15px 15px;
+      border: 2px solid #444;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.9);
       transition: border-color 0.3s;
     }
 
     input:focus {
       outline: none;
       border-color: #667eea;
+      background: white;
     }
 
     .password-toggle {
@@ -124,10 +129,10 @@
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 15px;
       border: none;
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -156,8 +161,9 @@
     .form-footer {
       text-align: center;
       margin-top: 20px;
-      color: #666;
+      color: #2d3748;
       font-size: 14px;
+      text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7);
     }
 
     .form-footer a {
@@ -205,7 +211,7 @@
     .forgot-password-link {
       text-align: right;
       margin-top: -15px;
-      margin-bottom: 20px;
+      margin-bottom: 35px;
     }
 
     .forgot-password-link a {
@@ -227,6 +233,33 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    .auth-disclaimer {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      border-left: 4px solid #ff1493;
+      font-size: 0.75em;
+      line-height: 1.4;
+      color: #2d3748;
+      text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7);
+    }
+
+    .auth-disclaimer p {
+      margin: 0 0 8px 0;
+    }
+
+    .auth-disclaimer p:last-child {
+      margin-bottom: 0;
+    }
+
+    .developed-by {
+      text-align: center;
+      font-weight: 600;
+      color: #667eea !important;
+      margin-top: 10px !important;
     }
   </style>
 </head>
@@ -260,13 +293,7 @@
         <p class="subtitle">Manage your finances smartly</p>
       </div>
 
-      <!-- Tab Buttons -->
-      <div class="tab-buttons">
-        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
-        <button class="tab-btn" onclick="switchTab('register')">Register</button>
-      </div>
-
-      <!-- Login Form -->
+<!-- Login Form -->
       <div id="login" class="form-content active">
         <form onsubmit="handleLogin(event)">
           <div class="form-group">
@@ -312,6 +339,25 @@
           </div>
 
           <div class="form-group">
+            <label for="regSecurityQuestion">Security Question:</label>
+            <select id="regSecurityQuestion" required>
+              <option value="">Select your security question</option>
+              <option value="pet">What was your first pet's name?</option>
+              <option value="school">What elementary school did you attend?</option>
+              <option value="city">In what city were you born?</option>
+              <option value="mother">What is your mother's maiden name?</option>
+              <option value="friend">What is the name of your best friend?</option>
+            </select>
+            <div class="error-message" id="regSecurityQuestionError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="regSecurityAnswer">Security Answer:</label>
+            <input type="text" id="regSecurityAnswer" placeholder="Enter your security answer" required>
+            <div class="error-message" id="regSecurityAnswerError"></div>
+          </div>
+
+          <div class="form-group">
             <label for="regPassword">Password:</label>
             <div class="password-toggle">
               <input type="password" id="regPassword" placeholder="Min 6 characters" required>
@@ -341,21 +387,76 @@
       <!-- Forgot Password Form -->
       <div id="forgot" class="form-content">
         <h2 style="color: #333; margin-bottom: 20px; font-size: 20px;">Reset Password</h2>
-        <form onsubmit="handleForgotPassword(event)">
-          <div class="form-group">
-            <label for="forgotEmail">Enter your email:</label>
-            <input type="email" id="forgotEmail" placeholder="Email associated with account" required>
-            <div class="error-message" id="forgotError"></div>
-            <div class="success-message" id="forgotSuccess"></div>
-          </div>
+        
+        <!-- Step 1: Security Question Validation -->
+        <div id="forgotStep1">
+          <form onsubmit="handleSecurityValidation(event)">
+            <div class="form-group">
+              <label for="forgotUsername">Enter your username:</label>
+              <input type="text" id="forgotUsername" placeholder="Username associated with account" required>
+              <div class="error-message" id="forgotError"></div>
+            </div>
 
-          <button type="submit" class="btn btn-primary">Send Recovery Link</button>
-        </form>
+            <div class="form-group">
+              <label for="securityQuestion">Security Question:</label>
+              <select id="securityQuestion" required>
+                <option value="">Select your security question</option>
+                <option value="pet">What was your first pet's name?</option>
+                <option value="school">What elementary school did you attend?</option>
+                <option value="city">In what city were you born?</option>
+                <option value="mother">What is your mother's maiden name?</option>
+                <option value="friend">What is the name of your best friend?</option>
+              </select>
+              <div class="error-message" id="securityQuestionError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="securityAnswer">Security Answer:</label>
+              <input type="text" id="securityAnswer" placeholder="Enter your security answer" required>
+              <div class="error-message" id="securityAnswerError"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Validate Security</button>
+          </form>
+        </div>
+
+        <!-- Step 2: New Password Entry -->
+        <div id="forgotStep2" style="display: none;">
+          <form onsubmit="handlePasswordReset(event)">
+            <div class="form-group">
+              <label for="newPassword">New Password:</label>
+              <div class="password-toggle">
+                <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('newPassword')">👁️</button>
+              </div>
+              <div class="error-message" id="newPasswordError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmNewPassword">Confirm New Password:</label>
+              <div class="password-toggle">
+                <input type="password" id="confirmNewPassword" placeholder="Confirm new password" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('confirmNewPassword')">👁️</button>
+              </div>
+              <div class="error-message" id="confirmNewPasswordError"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Reset Password</button>
+            <button type="button" class="btn btn-secondary" onclick="backToSecurityStep()" style="margin-left: 10px;">Back</button>
+          </form>
+        </div>
+
+        <div class="success-message" id="forgotSuccess"></div>
 
         <div class="form-footer">
           <a onclick="switchTab('login')">Back to Login</a>
         </div>
       </div>
+    </div>
+    
+    <div class="auth-disclaimer">
+      <p><strong>Disclaimer:</strong> This application is provided as-is for expense tracking purposes. The developer (YCR) is not responsible for any data loss, inaccuracies, or technical issues. Users are advised to maintain regular backups of their data.</p>
+      <p class="developed-by">Developed by YCR | © 2026</p>
     </div>
   </div>
 
@@ -445,6 +546,8 @@
       const email = document.getElementById('regEmail').value;
       const password = document.getElementById('regPassword').value;
       const confirmPassword = document.getElementById('regPasswordConfirm').value;
+      const securityQuestion = document.getElementById('regSecurityQuestion').value;
+      const securityAnswer = document.getElementById('regSecurityAnswer').value;
 
       // Clear previous errors
       document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
@@ -460,11 +563,25 @@
         return;
       }
 
+      if (!username || !email || !password || !securityQuestion || !securityAnswer) {
+        if (!username) showError('regUsernameError', 'Username is required');
+        if (!email) showError('regEmailError', 'Email is required');
+        if (!password) showError('regPasswordError', 'Password is required');
+        if (!securityQuestion) showError('regSecurityQuestionError', 'Security question is required');
+        if (!securityAnswer) showError('regSecurityAnswerError', 'Security answer is required');
+        return;
+      }
+
+      if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        showError('regEmailError', 'Invalid email format');
+        return;
+      }
+
       try {
         const response = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password })
+          body: JSON.stringify({ username, email, password, securityQuestion, securityAnswer })
         });
 
         const data = await response.json();
@@ -487,30 +604,111 @@
       }
     }
 
-    async function handleForgotPassword(event) {
+    async function handleSecurityValidation(event) {
       event.preventDefault();
 
-      const email = document.getElementById('forgotEmail').value;
+      const username = document.getElementById('forgotUsername').value;
+      const securityQuestion = document.getElementById('securityQuestion').value;
+      const securityAnswer = document.getElementById('securityAnswer').value;
+
+      // Clear previous errors
+      document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+      // Validation
+      if (!username || !securityQuestion || !securityAnswer) {
+        if (!username) showError('forgotError', 'Username is required');
+        if (!securityQuestion) showError('securityQuestionError', 'Security question is required');
+        if (!securityAnswer) showError('securityAnswerError', 'Security answer is required');
+        return;
+      }
 
       try {
-        const response = await fetch('/api/forgot-password', {
+        const response = await fetch('/api/validate-security', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          body: JSON.stringify({ username, securityQuestion, securityAnswer })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          showError('forgotError', data.error || 'Failed to process request');
+          showError('forgotError', data.error || 'Security validation failed');
           return;
         }
 
-        showSuccess('forgotSuccess', 'Recovery link sent! Check your email.\nFor testing: ' + data.token);
-        document.getElementById('forgotEmail').value = '';
+        // Show step 2 - password reset form
+        document.getElementById('forgotStep1').style.display = 'none';
+        document.getElementById('forgotStep2').style.display = 'block';
+        
+        // Store validated username for password reset
+        window.validatedUsername = username;
       } catch (error) {
         showError('forgotError', 'Connection error: ' + error.message);
       }
+    }
+
+    async function handlePasswordReset(event) {
+      event.preventDefault();
+
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+      // Clear previous errors
+      document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+      // Validation
+      if (newPassword !== confirmNewPassword) {
+        showError('confirmNewPasswordError', 'Passwords do not match');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showError('newPasswordError', 'Password must be at least 6 characters');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/reset-password-with-security', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            username: window.validatedUsername, 
+            newPassword 
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError('newPasswordError', data.error || 'Password reset failed');
+          return;
+        }
+
+        showSuccess('forgotSuccess', 'Password reset successful! Redirecting to login...');
+        
+        // Clear form and redirect to login after delay
+        setTimeout(() => {
+          document.getElementById('forgotStep2').style.display = 'none';
+          document.getElementById('forgotStep1').style.display = 'block';
+          document.getElementById('forgotUsername').value = '';
+          document.getElementById('securityQuestion').value = '';
+          document.getElementById('securityAnswer').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmNewPassword').value = '';
+          document.getElementById('forgotSuccess').style.display = 'none';
+          switchTab('login');
+        }, 2000);
+      } catch (error) {
+        showError('newPasswordError', 'Connection error: ' + error.message);
+      }
+    }
+
+    function backToSecurityStep() {
+      document.getElementById('forgotStep2').style.display = 'none';
+      document.getElementById('forgotStep1').style.display = 'block';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmNewPassword').value = '';
+      document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
     }
   </script>
 </body>

@@ -6,7 +6,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ffeaa7 0%, #dfe6e9 15%, #c7ecee 30%, #b2f2ef 45%, #74b9ff 60%, #a29bfe 75%, #6c5ce7 90%, #fd79a8 100%);
   min-height: 100vh;
   padding: 20px;
 }
@@ -16,7 +16,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 255, 0.95) 25%, rgba(240, 240, 255, 0.95) 50%, rgba(232, 232, 255, 0.95) 75%, rgba(224, 224, 255, 0.95) 100%);
   padding: 15px 25px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -92,7 +92,7 @@ body {
   display: flex;
   align-items: center;
   gap: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 255, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 255, 0.95) 25%, rgba(240, 240, 255, 0.95) 50%, rgba(232, 232, 255, 0.95) 75%, rgba(224, 224, 255, 0.95) 100%);
   padding: 25px 30px;
   border-radius: 15px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -103,7 +103,6 @@ body {
   width: 80px;
   height: 80px;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .header-with-logo h1 {
@@ -120,7 +119,7 @@ body {
 
 .input-section,
 .expenses-list-section {
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 255, 0.95) 25%, rgba(240, 240, 255, 0.95) 50%, rgba(232, 232, 255, 0.95) 75%, rgba(224, 224, 255, 0.95) 100%);
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -317,7 +316,7 @@ body {
 }
 
 .stats-section {
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 255, 0.95) 25%, rgba(240, 240, 255, 0.95) 50%, rgba(232, 232, 255, 0.95) 75%, rgba(224, 224, 255, 0.95) 100%);
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);

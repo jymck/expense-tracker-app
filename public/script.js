@@ -450,6 +450,9 @@ async function updatePersonBreakdown() {
     const personTotals = {};
     const personMap = {
       "Self Expenses": "Self",
+      "Mother": "Mother",
+      "Father": "Father",
+      "Relatives": "Relatives",
       "Son's Expenses": "Son",
       "Daughter's Expenses": "Daughter",
       "Spouse Expenses": "Spouse"

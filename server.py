@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import threading
 
-PORT = 3000
+PORT = 5000
 DB_FILE = 'expenses.db'
 RECOVERY_LOG_FILE = 'recovery_tokens.log'
 
@@ -54,7 +54,7 @@ def send_recovery_email(email, token, username):
     """Send password recovery email to user"""
     try:
         # For development: Log token to console and file
-        recovery_message = f"[{datetime.now().isoformat()}] Password recovery requested\n  Email: {email}\n  Username: {username}\n  Token: {token}\n  Recovery URL: http://localhost:3000/recovery.html?token={token}\n"
+        recovery_message = f"[{datetime.now().isoformat()}] Password recovery requested\n  Email: {email}\n  Username: {username}\n  Token: {token}\n  Recovery URL: http://localhost:5000/recovery.html?token={token}\n"
         print(recovery_message, file=sys.stderr)
         
         # Log to file for reference
@@ -80,7 +80,7 @@ def send_recovery_email(email, token, username):
                 <h2>Password Recovery Request</h2>
                 <p>Hi {username},</p>
                 <p>You requested a password recovery. Click the link below to reset your password:</p>
-                <p><a href="http://localhost:3000/recovery.html?token={token}">Reset Password</a></p>
+                <p><a href="http://localhost:5000/recovery.html?token={token}">Reset Password</a></p>
                 <p>This link expires in 1 hour.</p>
                 <p>If you didn't request this, please ignore this email.</p>
               </body>
@@ -121,6 +121,19 @@ def init_db():
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Add security columns to existing users table if they don't exist
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN security_question TEXT NOT NULL DEFAULT ""')
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e):
+                raise e
+        
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN security_answer TEXT NOT NULL DEFAULT ""')
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e):
+                raise e
         
         # Sessions table
         cursor.execute('''
@@ -565,12 +578,20 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                 username = data.get('username')
                 email = data.get('email')
                 password = data.get('password')
+                security_question = data.get('securityQuestion')
+                security_answer = data.get('securityAnswer')
                 
-                if not (username and email and password):
+                if not (username and email and password and security_question and security_answer):
                     self.send_response(400)
                     self.send_header('Content-type', 'application/json')
                     self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'All fields required'}).encode())
+                    error_fields = []
+                    if not username: error_fields.append('Username is required')
+                    if not email: error_fields.append('Email is required')
+                    if not password: error_fields.append('Password is required')
+                    if not security_question: error_fields.append('Security question is required')
+                    if not security_answer: error_fields.append('Security answer is required')
+                    self.wfile.write(json.dumps({'error': '; '.join(error_fields)}).encode())
                     return
                 
                 if len(password) < 6:
@@ -594,9 +615,21 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                         conn = get_db_connection()
                         cursor = conn.cursor()
                         
-                        # Insert user
-                        cursor.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-                                     (username, email, pwd_hash))
+                        # Check if user exists
+                        cursor.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email))
+                        existing_user = cursor.fetchone()
+                        
+                        if existing_user:
+                            conn.close()
+                            self.send_response(400)
+                            self.send_header('Content-type', 'application/json')
+                            self.end_headers()
+                            self.wfile.write(json.dumps({'error': 'Username or email already exists'}).encode())
+                            return
+                        
+                        # Insert user with security question and answer
+                        cursor.execute('INSERT INTO users (username, email, password_hash, security_question, security_answer) VALUES (?, ?, ?, ?, ?)',
+                                     (username, email, pwd_hash, security_question, security_answer))
                         user_id = cursor.lastrowid
                         
                         # Create session
@@ -629,47 +662,167 @@ class ExpenseHandler(BaseHTTPRequestHandler):
                         self.wfile.write(json.dumps({'error': 'Username or email already exists'}).encode())
                 return
             
-            # Forgot password endpoint
-            elif pathname == '/api/forgot-password':
-                email = data.get('email')
+            # Security validation endpoint
+            elif pathname == '/api/validate-security':
+                username = data.get('username')
+                security_question = data.get('securityQuestion')
+                security_answer = data.get('securityAnswer')
                 
-                if not email:
+                if not username or not security_question or not security_answer:
                     self.send_response(400)
                     self.send_header('Content-type', 'application/json')
                     self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'Email required'}).encode())
+                    error_fields = []
+                    if not username: error_fields.append('Username is required')
+                    if not security_question: error_fields.append('Security question is required')
+                    if not security_answer: error_fields.append('Security answer is required')
+                    self.wfile.write(json.dumps({'error': '; '.join(error_fields)}).encode())
                     return
                 
                 with db_lock:
                     conn = get_db_connection()
                     cursor = conn.cursor()
-                    cursor.execute('SELECT id, username FROM users WHERE email = ?', (email,))
+                    cursor.execute('SELECT id, security_question, security_answer FROM users WHERE username = ?', (username,))
+                    user = cursor.fetchone()
+                    conn.close()
+                    
+                    if not user:
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Username not found'}).encode())
+                        return
+                    
+                    # Check if user has security question and answer set
+                    if not user[1] or not user[2]:
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'No security question set for this account. Please contact admin.'}).encode())
+                        return
+                    
+                    # Verify security question and answer
+                    if user[1] != security_question or user[2] != security_answer:
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Invalid security question or answer'}).encode())
+                        return
+                
+                response = json.dumps({'message': 'Security validation successful'})
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(response.encode())
+                return
+            
+            # Reset password with security endpoint
+            elif pathname == '/api/reset-password-with-security':
+                username = data.get('username')
+                new_password = data.get('newPassword')
+                
+                if not (username and new_password):
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Username and new password required'}).encode())
+                    return
+                
+                if len(new_password) < 6:
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Password must be at least 6 characters'}).encode())
+                    return
+                
+                with db_lock:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT id FROM users WHERE username = ?', (username,))
                     user = cursor.fetchone()
                     
                     if not user:
-                        # Don't reveal if email exists
                         conn.close()
-                        self.send_response(200)
+                        self.send_response(400)
                         self.send_header('Content-type', 'application/json')
                         self.end_headers()
-                        self.wfile.write(json.dumps({'message': 'If email exists, recovery token sent'}).encode())
+                        self.wfile.write(json.dumps({'error': 'Username not found'}).encode())
                         return
                     
-                    user_id, username = user[0], user[1]
-                    token = generate_recovery_token()
-                    expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
-                    
-                    cursor.execute('INSERT INTO password_recovery (user_id, token, expires_at) VALUES (?, ?, ?)',
-                                 (user_id, token, expires_at))
+                    # Update password in database
+                    hashed_password = hash_password(new_password)
+                    cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', (hashed_password, user[0]))
                     conn.commit()
                     conn.close()
                 
-                # Send recovery email (logs token for development)
-                send_recovery_email(email, token, username)
+                response = json.dumps({'message': 'Password reset successful'})
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(response.encode())
+                return
+            
+            # Forgot password endpoint (deprecated - kept for compatibility)
+            elif pathname == '/api/forgot-password':
+                username = data.get('username')
+                security_question = data.get('securityQuestion')
+                security_answer = data.get('securityAnswer')
+                
+                if not username or not security_question or not security_answer:
+                    self.send_response(400)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    error_fields = []
+                    if not username: error_fields.append('Username is required')
+                    if not security_question: error_fields.append('Security question is required')
+                    if not security_answer: error_fields.append('Security answer is required')
+                    self.wfile.write(json.dumps({'error': '; '.join(error_fields)}).encode())
+                    return
+                
+                with db_lock:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT id, security_question, security_answer FROM users WHERE username = ?', (username,))
+                    user = cursor.fetchone()
+                    
+                    if not user:
+                        conn.close()
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Username not found'}).encode())
+                        return
+                    
+                    # Check if user has security question and answer set
+                    if not user[1] or not user[2]:
+                        conn.close()
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'No security question set for this account. Please contact admin.'}).encode())
+                        return
+                    
+                    # Verify security question and answer
+                    if user[1] != security_question or user[2] != security_answer:
+                        conn.close()
+                        self.send_response(400)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Invalid security question or answer'}).encode())
+                        return
+                    
+                    # Generate new password
+                    new_password = secrets.token_urlsafe(12)  # Generate random password
+                    hashed_password = hash_password(new_password)
+                    
+                    # Update password in database
+                    cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', (hashed_password, user[0]))
+                    conn.commit()
+                    conn.close()
                 
                 response = json.dumps({
-                    'message': 'Password recovery link sent',
-                    'note': 'Check your email for the recovery link. For development, see recovery_tokens.log'
+                    'message': 'Password reset successful',
+                    'newPassword': new_password
                 })
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
